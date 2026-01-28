@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Avatar Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      color: #fff;
+    }
+
+    h1 {
+      margin-bottom: 0.5rem;
+      font-size: 2.5rem;
+      background: linear-gradient(to right, #6366f1, #a5b4fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: #a5b4fc;
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+
+    .demo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    #avatar-container {
+      transition: transform 0.3s ease;
+    }
+
+    #avatar-container:hover {
+      transform: scale(1.05);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      max-width: 500px;
+    }
+
+    .controls button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .controls button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .controls button:active {
+      transform: translateY(0);
+    }
+
+    .controls button.active {
+      background: #6366f1;
+      border-color: #6366f1;
+    }
+
+    .state-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+
+    .state-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #6366f1;
+      animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .customization {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .customization h3 {
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      color: #a5b4fc;
+    }
+
+    .color-options {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .color-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .color-option label {
+      font-size: 0.8rem;
+      color: #a5b4fc;
+    }
+
+    .color-option input[type="color"] {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    .size-slider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .size-slider input[type="range"] {
+      flex: 1;
+      accent-color: #6366f1;
+    }
+
+    .size-slider span {
+      font-size: 0.9rem;
+      color: #a5b4fc;
+      min-width: 60px;
+    }
+
+    .code-example {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    .code-example h3 {
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      color: #a5b4fc;
+    }
+
+    .code-example pre {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .code-example code {
+      color: #e2e8f0;
+    }
+
+    .code-example .keyword { color: #c792ea; }
+    .code-example .string { color: #c3e88d; }
+    .code-example .function { color: #82aaff; }
+    .code-example .comment { color: #676e95; }
+  </style>
+</head>
+<body>
+  <h1>AI Avatar</h1>
+  <p class="subtitle">Interactive avatar component with state-based animations</p>
+
+  <div class="demo-container">
+    <div id="avatar-container"></div>
+
+    <div class="state-indicator">
+      <div class="state-dot"></div>
+      <span>Current state: <strong id="current-state">idle</strong></span>
+    </div>
+
+    <div class="controls">
+      <button data-state="idle" class="active">Idle</button>
+      <button data-state="thinking">Thinking</button>
+      <button data-state="speaking">Speaking</button>
+      <button data-state="listening">Listening</button>
+      <button data-state="error">Error</button>
+    </div>
+
+    <div class="customization">
+      <h3>Customize Avatar</h3>
+      <div class="color-options">
+        <div class="color-option">
+          <label>Primary</label>
+          <input type="color" id="primary-color" value="#6366f1">
+        </div>
+        <div class="color-option">
+          <label>Secondary</label>
+          <input type="color" id="secondary-color" value="#818cf8">
+        </div>
+        <div class="color-option">
+          <label>Background</label>
+          <input type="color" id="bg-color" value="#1e1b4b">
+        </div>
+        <div class="color-option">
+          <label>Glow</label>
+          <input type="color" id="glow-color" value="#a5b4fc">
+        </div>
+      </div>
+      <div class="size-slider">
+        <label>Size:</label>
+        <input type="range" id="size-slider" min="100" max="300" value="200">
+        <span id="size-value">200px</span>
+      </div>
+    </div>
+
+    <div class="code-example">
+      <h3>Usage Example</h3>
+      <pre><code><span class="comment">// Import the AIAvatar class</span>
+<span class="keyword">import</span> { AIAvatar } <span class="keyword">from</span> <span class="string">'./src/AIAvatar.js'</span>;
+
+<span class="comment">// Create an avatar instance</span>
+<span class="keyword">const</span> avatar = <span class="keyword">new</span> <span class="function">AIAvatar</span>(<span class="string">'#container'</span>, {
+  size: <span class="string">200</span>,
+  primaryColor: <span class="string">'#6366f1'</span>,
+  showParticles: <span class="string">true</span>
+});
+
+<span class="comment">// Change states</span>
+avatar.<span class="function">think</span>();  <span class="comment">// Processing state</span>
+avatar.<span class="function">speak</span>();  <span class="comment">// Speaking state</span>
+avatar.<span class="function">listen</span>(); <span class="comment">// Listening state</span>
+avatar.<span class="function">idle</span>();   <span class="comment">// Back to idle</span></code></pre>
+    </div>
+  </div>
+
+  <script type="module">
+    import { AIAvatar } from './src/AIAvatar.js';
+
+    // Initialize avatar
+    const avatar = new AIAvatar('#avatar-container', {
+      size: 200,
+      showParticles: true,
+      showGlow: true
+    });
+
+    // State buttons
+    const buttons = document.querySelectorAll('.controls button');
+    const stateDisplay = document.getElementById('current-state');
+
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        const state = button.dataset.state;
+        avatar.setState(state);
+        stateDisplay.textContent = state;
+
+        buttons.forEach(b => b.classList.remove('active'));
+        button.classList.add('active');
+      });
+    });
+
+    // Color customization
+    const primaryColor = document.getElementById('primary-color');
+    const secondaryColor = document.getElementById('secondary-color');
+    const bgColor = document.getElementById('bg-color');
+    const glowColor = document.getElementById('glow-color');
+
+    function updateColors() {
+      avatar.setConfig({
+        primaryColor: primaryColor.value,
+        secondaryColor: secondaryColor.value,
+        backgroundColor: bgColor.value,
+        glowColor: glowColor.value
+      });
+    }
+
+    [primaryColor, secondaryColor, bgColor, glowColor].forEach(input => {
+      input.addEventListener('input', updateColors);
+    });
+
+    // Size slider
+    const sizeSlider = document.getElementById('size-slider');
+    const sizeValue = document.getElementById('size-value');
+
+    sizeSlider.addEventListener('input', () => {
+      const size = parseInt(sizeSlider.value);
+      sizeValue.textContent = `${size}px`;
+      avatar.setConfig({ size });
+    });
+
+    // Listen for state changes
+    document.getElementById('avatar-container').addEventListener('statechange', (e) => {
+      console.log('Avatar state changed to:', e.detail.state);
+    });
+  </script>
+</body>
+</html>
