@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADHD Focus Companion</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f0e1a;
+      min-height: 100vh;
+      color: #e2e8f0;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: rgba(99, 102, 241, 0.08);
+      border-bottom: 1px solid rgba(99, 102, 241, 0.18);
+    }
+
+    header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #6366f1, #a5b4fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .streak-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.9rem;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .nav-link {
+      color: #6366f1;
+      text-decoration: none;
+      font-size: 0.85rem;
+      opacity: 0.7;
+      transition: opacity 0.15s;
+    }
+    .nav-link:hover { opacity: 1; }
+
+    main {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 2rem;
+      max-width: 860px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+
+    @media (max-width: 620px) {
+      main { grid-template-columns: 1fr; }
+      .avatar-panel { flex-direction: row; align-items: flex-start; }
+    }
+
+    /* Avatar panel */
+    .avatar-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .avatar-message {
+      text-align: center;
+      color: #a5b4fc;
+      font-size: 0.9rem;
+      font-style: italic;
+      line-height: 1.5;
+      min-height: 2.8rem;
+      padding: 0 0.25rem;
+      transition: opacity 0.25s ease;
+    }
+
+    /* Cards */
+    .card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 16px;
+      padding: 1.4rem;
+    }
+
+    .card-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #475569;
+      margin-bottom: 1.2rem;
+    }
+
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+    }
+
+    /* Timer */
+    .timer-area {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .timer-ring-wrap {
+      position: relative;
+      flex-shrink: 0;
+      width: 120px;
+      height: 120px;
+    }
+
+    .timer-ring-wrap svg {
+      transform: rotate(-90deg);
+      display: block;
+    }
+
+    .ring-bg {
+      fill: none;
+      stroke: rgba(99, 102, 241, 0.12);
+      stroke-width: 8;
+    }
+
+    #ring-progress {
+      fill: none;
+      stroke: #6366f1;
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.95s linear, stroke 0.4s ease;
+    }
+
+    .timer-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timer-display {
+      font-size: 1.9rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .timer-phase-label {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #475569;
+      margin-top: 4px;
+    }
+
+    .timer-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      flex: 1;
+    }
+
+    .phase-toggle {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .phase-btn {
+      flex: 1;
+      padding: 0.35rem 0.5rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: transparent;
+      color: #475569;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .phase-btn.active {
+      background: rgba(99, 102, 241, 0.18);
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
+    }
+
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-primary {
+      background: #6366f1;
+      color: #fff;
+    }
+    .btn-primary:hover { background: #4f46e5; }
+    .btn-primary:active { transform: scale(0.97); }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.05);
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .btn-ghost:hover { background: rgba(255, 255, 255, 0.09); }
+
+    /* Tasks */
+    .task-input-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .task-input {
+      flex: 1;
+      padding: 0.6rem 0.9rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      background: rgba(255, 255, 255, 0.04);
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .task-input:focus { border-color: rgba(99, 102, 241, 0.45); }
+    .task-input::placeholder { color: #334155; }
+
+    .btn-add {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      border: none;
+      background: #6366f1;
+      color: #fff;
+      font-size: 1.4rem;
+      line-height: 1;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .btn-add:hover { background: #4f46e5; }
+
+    .task-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .task-empty {
+      color: #2d3748;
+      font-size: 0.88rem;
+      padding: 0.4rem 0;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.6rem 0.7rem;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.15s;
+    }
+    .task-item:hover { background: rgba(255, 255, 255, 0.055); }
+    .task-item.done .task-text {
+      text-decoration: line-through;
+      color: #334155;
+    }
+
+    .task-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 2px solid rgba(99, 102, 241, 0.4);
+      background: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: transparent;
+      transition: all 0.15s;
+    }
+    .task-item.done .task-check {
+      background: #6366f1;
+      border-color: #6366f1;
+      color: #fff;
+    }
+
+    .task-text {
+      flex: 1;
+      font-size: 0.92rem;
+      line-height: 1.4;
+    }
+
+    .task-delete {
+      background: transparent;
+      border: none;
+      color: #2d3748;
+      font-size: 1.15rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 0.15rem;
+      transition: color 0.15s;
+    }
+    .task-delete:hover { color: #ef4444; }
+
+    /* Celebration particles */
+    .burst-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      overflow: hidden;
+    }
+
+    .burst-dot {
+      position: absolute;
+      border-radius: 50%;
+      animation: burst-fly 1s ease-out forwards;
+    }
+
+    @keyframes burst-fly {
+      0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>ADHD Focus Companion</h1>
+  <div class="header-right">
+    <div class="streak-badge">
+      <span>🔥</span>
+      <span id="streak-count">0</span> sessions
+    </div>
+    <a href="index.html" class="nav-link">← Avatar Demo</a>
+  </div>
+</header>
+
+<main>
+  <div class="avatar-panel">
+    <div id="avatar-container"></div>
+    <p class="avatar-message" id="avatar-message">Ready when you are!</p>
+  </div>
+
+  <div class="right-panel">
+
+    <div class="card">
+      <div class="card-label">Focus Timer</div>
+      <div class="timer-area">
+        <div class="timer-ring-wrap">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle class="ring-bg" cx="60" cy="60" r="52"/>
+            <circle id="ring-progress" cx="60" cy="60" r="52"
+              stroke-dasharray="326.73" stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-center">
+            <div class="timer-display" id="timer-display">25:00</div>
+            <div class="timer-phase-label" id="timer-phase-label">FOCUS</div>
+          </div>
+        </div>
+        <div class="timer-controls">
+          <div class="phase-toggle">
+            <button class="phase-btn active" id="btn-phase-work">Focus 25m</button>
+            <button class="phase-btn" id="btn-phase-break">Break 5m</button>
+          </div>
+          <button class="btn btn-primary" id="btn-start-pause">Start</button>
+          <button class="btn btn-ghost" id="btn-reset">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Tasks</div>
+      <div class="task-input-row">
+        <input class="task-input" id="task-input" type="text"
+          placeholder="What needs to get done?" maxlength="120" autocomplete="off">
+        <button class="btn-add" id="btn-add-task" title="Add task">+</button>
+      </div>
+      <ul class="task-list" id="task-list"></ul>
+    </div>
+
+  </div>
+</main>
+
+<script>
+/**
+ * AIAvatar - inlined so this file works without a web server (file://)
+ */
+class AIAvatar {
+  static STATES = {
+    IDLE: 'idle',
+    THINKING: 'thinking',
+    SPEAKING: 'speaking',
+    LISTENING: 'listening',
+    ERROR: 'error'
+  };
+
+  static DEFAULT_CONFIG = {
+    size: 200,
+    primaryColor: '#6366f1',
+    secondaryColor: '#818cf8',
+    backgroundColor: '#1e1b4b',
+    glowColor: '#a5b4fc',
+    animationSpeed: 1,
+    showParticles: true,
+    showGlow: true,
+    rounded: true
+  };
+
+  constructor(container, config = {}) {
+    this.container = typeof container === 'string'
+      ? document.querySelector(container)
+      : container;
+
+    if (!this.container) {
+      throw new Error('AIAvatar: Container element not found');
+    }
+
+    this.config = { ...AIAvatar.DEFAULT_CONFIG, ...config };
+    this.state = AIAvatar.STATES.IDLE;
+    this.animationFrame = null;
+    this.particles = [];
+    this.time = 0;
+
+    this._init();
+  }
+
+  _init() {
+    this._createStyles();
+    this._createDOM();
+    this._startAnimationLoop();
+  }
+
+  _createStyles() {
+    if (document.getElementById('ai-avatar-styles')) return;
+
+    const styles = document.createElement('style');
+    styles.id = 'ai-avatar-styles';
+    styles.textContent = `
+      .ai-avatar-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .ai-avatar-container.rounded {
+        border-radius: 50%;
+      }
+
+      .ai-avatar-glow {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: inherit;
+        filter: blur(20px);
+        opacity: 0.5;
+        transition: opacity 0.3s ease;
+      }
+
+      .ai-avatar-svg {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+      }
+
+      .ai-avatar-container[data-state="thinking"] .ai-avatar-glow {
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      .ai-avatar-container[data-state="speaking"] .ai-avatar-glow {
+        animation: speak-glow 0.3s ease-in-out infinite alternate;
+      }
+
+      .ai-avatar-container[data-state="listening"] .ai-avatar-glow {
+        animation: listen-glow 2s ease-in-out infinite;
+      }
+
+      .ai-avatar-container[data-state="error"] .ai-avatar-glow {
+        background: #ef4444 !important;
+        animation: error-pulse 0.5s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 0.4; transform: scale(1); }
+        50% { opacity: 0.8; transform: scale(1.05); }
+      }
+
+      @keyframes speak-glow {
+        0% { opacity: 0.5; }
+        100% { opacity: 0.9; }
+      }
+
+      @keyframes listen-glow {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 0.7; }
+      }
+
+      @keyframes error-pulse {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 0.9; }
+      }
+
+      .ai-avatar-particles {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      .ai-avatar-particle {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+      }
+    `;
+    document.head.appendChild(styles);
+  }
+
+  _createDOM() {
+    const { size, backgroundColor, glowColor, rounded, showGlow } = this.config;
+
+    this.container.innerHTML = '';
+    this.container.className = `ai-avatar-container ${rounded ? 'rounded' : ''}`;
+    this.container.style.width = `${size}px`;
+    this.container.style.height = `${size}px`;
+    this.container.style.backgroundColor = backgroundColor;
+    this.container.dataset.state = this.state;
+
+    if (showGlow) {
+      this.glowElement = document.createElement('div');
+      this.glowElement.className = 'ai-avatar-glow';
+      this.glowElement.style.background = glowColor;
+      this.container.appendChild(this.glowElement);
+    }
+
+    this.svgElement = this._createSVG();
+    this.container.appendChild(this.svgElement);
+
+    if (this.config.showParticles) {
+      this.particlesContainer = document.createElement('div');
+      this.particlesContainer.className = 'ai-avatar-particles';
+      this.container.appendChild(this.particlesContainer);
+    }
+  }
+
+  _createSVG() {
+    const { primaryColor, secondaryColor } = this.config;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 200 200');
+    svg.setAttribute('class', 'ai-avatar-svg');
+
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="avatar-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:${primaryColor}"/>
+          <stop offset="100%" style="stop-color:${secondaryColor}"/>
+        </linearGradient>
+        <filter id="avatar-shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="${primaryColor}" flood-opacity="0.3"/>
+        </filter>
+        <clipPath id="face-clip">
+          <circle cx="100" cy="100" r="70"/>
+        </clipPath>
+      </defs>
+      <circle class="avatar-head" cx="100" cy="100" r="70"
+        fill="url(#avatar-gradient)" filter="url(#avatar-shadow)"/>
+      <g class="avatar-face" clip-path="url(#face-clip)">
+        <g class="avatar-eye avatar-eye-left">
+          <ellipse cx="75" cy="90" rx="12" ry="14" fill="#1e1b4b"/>
+          <ellipse class="avatar-pupil" cx="75" cy="90" rx="6" ry="7" fill="#fff"/>
+          <circle class="avatar-eye-highlight" cx="78" cy="86" r="3" fill="#fff" opacity="0.8"/>
+        </g>
+        <g class="avatar-eye avatar-eye-right">
+          <ellipse cx="125" cy="90" rx="12" ry="14" fill="#1e1b4b"/>
+          <ellipse class="avatar-pupil" cx="125" cy="90" rx="6" ry="7" fill="#fff"/>
+          <circle class="avatar-eye-highlight" cx="128" cy="86" r="3" fill="#fff" opacity="0.8"/>
+        </g>
+        <path class="avatar-mouth" d="M 80 125 Q 100 135 120 125"
+          stroke="#1e1b4b" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <g class="avatar-thinking-dots" opacity="0">
+          <circle cx="75" cy="150" r="4" fill="#1e1b4b"/>
+          <circle cx="100" cy="150" r="4" fill="#1e1b4b"/>
+          <circle cx="125" cy="150" r="4" fill="#1e1b4b"/>
+        </g>
+      </g>
+      <g class="avatar-antenna">
+        <line x1="100" y1="30" x2="100" y2="15" stroke="${primaryColor}" stroke-width="3" stroke-linecap="round"/>
+        <circle class="avatar-antenna-light" cx="100" cy="12" r="5" fill="${secondaryColor}"/>
+      </g>
+      <g class="avatar-sound-waves" opacity="0">
+        <path d="M 175 100 Q 185 85, 175 70" stroke="${primaryColor}" stroke-width="2" fill="none" opacity="0.6"/>
+        <path d="M 180 100 Q 195 80, 180 60" stroke="${primaryColor}" stroke-width="2" fill="none" opacity="0.4"/>
+        <path d="M 25 100 Q 15 85, 25 70" stroke="${primaryColor}" stroke-width="2" fill="none" opacity="0.6"/>
+        <path d="M 20 100 Q 5 80, 20 60" stroke="${primaryColor}" stroke-width="2" fill="none" opacity="0.4"/>
+      </g>
+    `;
+
+    return svg;
+  }
+
+  _startAnimationLoop() {
+    const animate = () => {
+      this.time += 0.016 * this.config.animationSpeed;
+      this._updateAnimation();
+      this.animationFrame = requestAnimationFrame(animate);
+    };
+    animate();
+  }
+
+  _updateAnimation() {
+    const svg = this.svgElement;
+    if (!svg) return;
+
+    const head = svg.querySelector('.avatar-head');
+    const leftEye = svg.querySelector('.avatar-eye-left');
+    const rightEye = svg.querySelector('.avatar-eye-right');
+    const mouth = svg.querySelector('.avatar-mouth');
+    const antennaLight = svg.querySelector('.avatar-antenna-light');
+    const thinkingDots = svg.querySelector('.avatar-thinking-dots');
+    const soundWaves = svg.querySelector('.avatar-sound-waves');
+
+    const breathe = Math.sin(this.time * 2) * 0.02;
+    head.style.transform = `scale(${1 + breathe})`;
+    head.style.transformOrigin = 'center';
+
+    const antennaPulse = (Math.sin(this.time * 4) + 1) / 2;
+    antennaLight.style.opacity = 0.5 + antennaPulse * 0.5;
+
+    switch (this.state) {
+      case AIAvatar.STATES.IDLE:
+        this._animateIdle(leftEye, rightEye, mouth);
+        thinkingDots.style.opacity = '0';
+        soundWaves.style.opacity = '0';
+        break;
+      case AIAvatar.STATES.THINKING:
+        this._animateThinking(leftEye, rightEye, mouth, thinkingDots);
+        soundWaves.style.opacity = '0';
+        break;
+      case AIAvatar.STATES.SPEAKING:
+        this._animateSpeaking(mouth);
+        thinkingDots.style.opacity = '0';
+        soundWaves.style.opacity = '0';
+        break;
+      case AIAvatar.STATES.LISTENING:
+        this._animateListening(leftEye, rightEye, soundWaves);
+        thinkingDots.style.opacity = '0';
+        break;
+      case AIAvatar.STATES.ERROR:
+        this._animateError(leftEye, rightEye, mouth);
+        thinkingDots.style.opacity = '0';
+        soundWaves.style.opacity = '0';
+        break;
+    }
+
+    if (this.config.showParticles) {
+      this._updateParticles();
+    }
+  }
+
+  _animateIdle(leftEye, rightEye, mouth) {
+    const eyeX = Math.sin(this.time * 0.5) * 2;
+    const eyeY = Math.cos(this.time * 0.7) * 1;
+    leftEye.style.transform = `translate(${eyeX}px, ${eyeY}px)`;
+    rightEye.style.transform = `translate(${eyeX}px, ${eyeY}px)`;
+    const blinkPhase = this.time % 5;
+    if (blinkPhase < 0.1) {
+      leftEye.style.transform += ' scaleY(0.1)';
+      rightEye.style.transform += ' scaleY(0.1)';
+    }
+    mouth.setAttribute('d', 'M 80 125 Q 100 135 120 125');
+  }
+
+  _animateThinking(leftEye, rightEye, mouth, thinkingDots) {
+    leftEye.style.transform = 'translateY(-5px)';
+    rightEye.style.transform = 'translateY(-5px)';
+    mouth.setAttribute('d', 'M 80 128 Q 100 128 120 128');
+    thinkingDots.style.opacity = '1';
+    const dots = thinkingDots.querySelectorAll('circle');
+    dots.forEach((dot, i) => {
+      const offset = i * 0.3;
+      const bounce = Math.abs(Math.sin((this.time + offset) * 4)) * 8;
+      dot.style.transform = `translateY(-${bounce}px)`;
+      dot.style.transformOrigin = 'center';
+    });
+  }
+
+  _animateSpeaking(mouth) {
+    const openness = (Math.sin(this.time * 15) + 1) * 5;
+    mouth.setAttribute('d', `M 80 125 Q 100 ${135 + openness} 120 125`);
+  }
+
+  _animateListening(leftEye, rightEye, soundWaves) {
+    leftEye.style.transform = 'scale(1.1)';
+    rightEye.style.transform = 'scale(1.1)';
+    leftEye.style.transformOrigin = 'center';
+    rightEye.style.transformOrigin = 'center';
+    soundWaves.style.opacity = '1';
+    const waves = soundWaves.querySelectorAll('path');
+    waves.forEach((wave, i) => {
+      const scale = 0.8 + Math.sin(this.time * 3 + i * 0.5) * 0.2;
+      wave.style.transform = `scale(${scale})`;
+      wave.style.transformOrigin = 'center';
+    });
+  }
+
+  _animateError(leftEye, rightEye, mouth) {
+    const shake = Math.sin(this.time * 20) * 2;
+    leftEye.style.transform = `translateX(${shake}px)`;
+    rightEye.style.transform = `translateX(${shake}px)`;
+    mouth.setAttribute('d', 'M 80 130 Q 100 120 120 130');
+  }
+
+  _updateParticles() {
+    if (!this.particlesContainer) return;
+    if (this.state === AIAvatar.STATES.THINKING || this.state === AIAvatar.STATES.SPEAKING) {
+      if (Math.random() < 0.1) this._createParticle();
+    }
+    this.particles = this.particles.filter(particle => {
+      particle.life -= 0.02;
+      if (particle.life <= 0) { particle.element.remove(); return false; }
+      particle.y -= particle.speed;
+      particle.x += Math.sin(particle.y * 0.05) * 0.5;
+      particle.element.style.transform = `translate(${particle.x}px, ${particle.y}px)`;
+      particle.element.style.opacity = particle.life;
+      return true;
+    });
+  }
+
+  _createParticle() {
+    const { size, primaryColor } = this.config;
+    const particle = document.createElement('div');
+    particle.className = 'ai-avatar-particle';
+    const particleSize = 2 + Math.random() * 4;
+    particle.style.width = `${particleSize}px`;
+    particle.style.height = `${particleSize}px`;
+    particle.style.backgroundColor = primaryColor;
+    const startX = size / 4 + Math.random() * (size / 2);
+    const startY = size;
+    particle.style.left = '0';
+    particle.style.top = '0';
+    particle.style.transform = `translate(${startX}px, ${startY}px)`;
+    this.particlesContainer.appendChild(particle);
+    this.particles.push({ element: particle, x: startX, y: startY, speed: 1 + Math.random() * 2, life: 1 });
+  }
+
+  setState(state) {
+    if (!Object.values(AIAvatar.STATES).includes(state)) {
+      console.warn(`AIAvatar: Unknown state "${state}"`);
+      return this;
+    }
+    this.state = state;
+    this.container.dataset.state = state;
+    this.container.dispatchEvent(new CustomEvent('statechange', { detail: { state } }));
+    return this;
+  }
+
+  getState() { return this.state; }
+
+  setConfig(newConfig) {
+    this.config = { ...this.config, ...newConfig };
+    this._createDOM();
+    return this;
+  }
+
+  idle()   { return this.setState(AIAvatar.STATES.IDLE); }
+  think()  { return this.setState(AIAvatar.STATES.THINKING); }
+  speak()  { return this.setState(AIAvatar.STATES.SPEAKING); }
+  listen() { return this.setState(AIAvatar.STATES.LISTENING); }
+  error()  { return this.setState(AIAvatar.STATES.ERROR); }
+
+  destroy() {
+    if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
+    this.particles.forEach(p => p.element.remove());
+    this.particles = [];
+    this.container.innerHTML = '';
+  }
+}
+</script>
+
+<script>
+  // ── Avatar setup ─────────────────────────────────────────────────────────────
+
+  const avatar = new AIAvatar('#avatar-container', {
+    size: 180,
+    primaryColor: '#6366f1',
+    secondaryColor: '#818cf8',
+    backgroundColor: '#1e1b4b',
+    glowColor: '#a5b4fc',
+    showParticles: true,
+    showGlow: true,
+  });
+
+  const messageEl = document.getElementById('avatar-message');
+
+  function setAvatar(state, message) {
+    avatar.setState(state);
+    messageEl.style.opacity = '0';
+    setTimeout(() => {
+      messageEl.textContent = message;
+      messageEl.style.opacity = '1';
+    }, 200);
+  }
+
+  // ── Persistence ───────────────────────────────────────────────────────────────
+  const STORE_KEY = 'adhd-companion-v1';
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
+    catch { return {}; }
+  }
+
+  function persist() {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      streak,
+      lastDate: todayStr,
+      tasks,
+    }));
+  }
+
+  // ── Streak ────────────────────────────────────────────────────────────────────
+  let saved = load();
+  let streak = saved.streak || 0;
+  let tasks  = saved.tasks  || [];
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const yesterdayStr = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (saved.lastDate && saved.lastDate !== todayStr && saved.lastDate !== yesterdayStr) {
+    streak = 0;
+  }
+
+  document.getElementById('streak-count').textContent = streak;
+
+  // ── Timer ─────────────────────────────────────────────────────────────────────
+  const WORK_SECS  = 25 * 60;
+  const BREAK_SECS = 5  * 60;
+  const CIRCUMFERENCE = 326.73; // 2π × 52
+
+  let phase     = 'work';
+  let timeLeft  = WORK_SECS;
+  let isRunning = false;
+  let interval  = null;
+
+  const ringEl       = document.getElementById('ring-progress');
+  const displayEl    = document.getElementById('timer-display');
+  const phaseLabelEl = document.getElementById('timer-phase-label');
+  const btnStart     = document.getElementById('btn-start-pause');
+  const btnReset     = document.getElementById('btn-reset');
+  const btnWork      = document.getElementById('btn-phase-work');
+  const btnBreak     = document.getElementById('btn-phase-break');
+
+  function fmt(s) {
+    return `${String(Math.floor(s / 60)).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`;
+  }
+
+  function refreshRing() {
+    const total    = phase === 'work' ? WORK_SECS : BREAK_SECS;
+    const fraction = timeLeft / total;
+    ringEl.style.strokeDashoffset = CIRCUMFERENCE * (1 - fraction);
+    ringEl.style.stroke = phase === 'work' ? '#6366f1' : '#10b981';
+  }
+
+  function refreshDisplay() {
+    displayEl.textContent    = fmt(timeLeft);
+    phaseLabelEl.textContent = phase === 'work' ? 'FOCUS' : 'BREAK';
+    refreshRing();
+  }
+
+  function switchPhase(p) {
+    if (isRunning) return;
+    phase    = p;
+    timeLeft = p === 'work' ? WORK_SECS : BREAK_SECS;
+    btnWork.classList.toggle('active',  p === 'work');
+    btnBreak.classList.toggle('active', p === 'break');
+    refreshDisplay();
+    if (p === 'work') {
+      setAvatar('idle', 'Ready when you are!');
+    } else {
+      setAvatar('listening', 'Rest time — you earned it!');
+    }
+  }
+
+  function toggleTimer() {
+    if (isRunning) {
+      clearInterval(interval);
+      isRunning = false;
+      btnStart.textContent = 'Resume';
+      setAvatar('idle', 'Paused — come back soon!');
+    } else {
+      isRunning = true;
+      btnStart.textContent = 'Pause';
+      setAvatar(
+        phase === 'work' ? 'speaking' : 'listening',
+        phase === 'work' ? "You've got this! Stay focused." : 'Relax and breathe.'
+      );
+      interval = setInterval(tick, 1000);
+    }
+  }
+
+  function resetTimer() {
+    clearInterval(interval);
+    isRunning = false;
+    btnStart.textContent = 'Start';
+    timeLeft = phase === 'work' ? WORK_SECS : BREAK_SECS;
+    refreshDisplay();
+    setAvatar('idle', 'Ready when you are!');
+  }
+
+  function tick() {
+    timeLeft--;
+    refreshDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      isRunning = false;
+      btnStart.textContent = 'Start';
+      playBeep();
+      onPhaseComplete();
+    }
+  }
+
+  function onPhaseComplete() {
+    if (phase === 'work') {
+      streak++;
+      document.getElementById('streak-count').textContent = streak;
+      persist();
+      setAvatar('speaking', `Session done! That's ${streak} today — incredible!`);
+      setTimeout(() => {
+        switchPhase('break');
+        setAvatar('listening', 'Break time — step away for 5 min.');
+      }, 3000);
+    } else {
+      switchPhase('work');
+      setAvatar('idle', 'Break over! Ready for another round?');
+    }
+  }
+
+  btnStart.addEventListener('click', toggleTimer);
+  btnReset.addEventListener('click', resetTimer);
+  btnWork.addEventListener('click',  () => switchPhase('work'));
+  btnBreak.addEventListener('click', () => switchPhase('break'));
+
+  // ── Sound ─────────────────────────────────────────────────────────────────────
+  function playBeep() {
+    try {
+      const ctx  = new AudioContext();
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = 528;
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.9);
+    } catch (_) { /* AudioContext unavailable */ }
+  }
+
+  // ── Tasks ─────────────────────────────────────────────────────────────────────
+  const taskListEl  = document.getElementById('task-list');
+  const taskInputEl = document.getElementById('task-input');
+  const btnAddTask  = document.getElementById('btn-add-task');
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function renderTasks() {
+    taskListEl.innerHTML = '';
+    if (!tasks.length) {
+      const li = document.createElement('li');
+      li.className = 'task-empty';
+      li.textContent = 'No tasks yet — add one above!';
+      taskListEl.appendChild(li);
+      return;
+    }
+    tasks.forEach((task, i) => {
+      const li = document.createElement('li');
+      li.className = `task-item${task.done ? ' done' : ''}`;
+
+      const check = document.createElement('button');
+      check.className = 'task-check';
+      check.title = 'Mark complete';
+      check.textContent = '✓';
+      check.addEventListener('click', () => completeTask(i));
+
+      const text = document.createElement('span');
+      text.className = 'task-text';
+      text.textContent = task.text;
+
+      const del = document.createElement('button');
+      del.className = 'task-delete';
+      del.title = 'Delete';
+      del.textContent = '×';
+      del.addEventListener('click', () => deleteTask(i));
+
+      li.append(check, text, del);
+      taskListEl.appendChild(li);
+    });
+  }
+
+  function addTask() {
+    const text = taskInputEl.value.trim();
+    if (!text) { taskInputEl.focus(); return; }
+    tasks.push({ text, done: false });
+    taskInputEl.value = '';
+    taskInputEl.focus();
+    renderTasks();
+    persist();
+    setAvatar('thinking', "Let's tackle that together!");
+    setTimeout(() => {
+      if (isRunning && phase === 'work') setAvatar('speaking', "You've got this!");
+      else setAvatar('idle', 'Ready when you are!');
+    }, 2000);
+  }
+
+  function completeTask(i) {
+    if (tasks[i].done) return;
+    tasks[i].done = true;
+    renderTasks();
+    persist();
+    celebrate();
+    setAvatar('speaking', 'Amazing! One more down!');
+    setTimeout(() => {
+      if (isRunning && phase === 'work') setAvatar('speaking', "Keep going — you're on fire!");
+      else setAvatar('idle', 'What else can we tackle?');
+    }, 2200);
+  }
+
+  function deleteTask(i) {
+    tasks.splice(i, 1);
+    renderTasks();
+    persist();
+  }
+
+  taskInputEl.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+  btnAddTask.addEventListener('click', addTask);
+
+  // ── Celebration burst ─────────────────────────────────────────────────────────
+  const BURST_COLORS = ['#6366f1','#a5b4fc','#10b981','#fbbf24','#f472b6','#38bdf8'];
+
+  function celebrate() {
+    const layer = document.createElement('div');
+    layer.className = 'burst-layer';
+    document.body.appendChild(layer);
+
+    for (let i = 0; i < 36; i++) {
+      const dot   = document.createElement('div');
+      dot.className = 'burst-dot';
+      const size  = 7 + Math.random() * 9;
+      const angle = (i / 36) * 360 + (Math.random() - 0.5) * 20;
+      const dist  = 90 + Math.random() * 160;
+      const dx    = Math.cos(angle * Math.PI / 180) * dist;
+      const dy    = Math.sin(angle * Math.PI / 180) * dist - 60;
+      dot.style.cssText = [
+        `width:${size}px`,
+        `height:${size}px`,
+        `background:${BURST_COLORS[i % BURST_COLORS.length]}`,
+        `left:calc(50% + ${(Math.random() - 0.5) * 40}px)`,
+        `top:calc(50% + ${(Math.random() - 0.5) * 40}px)`,
+        `--dx:${dx}px`,
+        `--dy:${dy}px`,
+        `animation-delay:${Math.random() * 0.15}s`,
+      ].join(';');
+      layer.appendChild(dot);
+    }
+
+    setTimeout(() => layer.remove(), 1400);
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────────
+  refreshDisplay();
+  renderTasks();
+</script>
+</body>
+</html>
